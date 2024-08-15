@@ -20,7 +20,7 @@ Administratorzy
 - Zmiana hasła
 3. Instalacja i uruchomienie
 a. Sklonuj repozytorium:
-git clone https://github.com/twoje-uzytkownik/baza-filmow.git
+git clone https://github.com/Gorylos2/baza-filmow.git
 cd baza-filmow
 b. Zainstaluj zależności:
 npm install
