@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edytuj Film</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <h2>Edytuj Film</h2>
+    <form id="editForm">
+        <label for="title">Tytuł:</label>
+        <input type="text" id="title" name="title" required><br><br>
+        <label for="description">Opis:</label>
+        <textarea id="description" name="description" required></textarea><br><br>
+        <label for="director">Reżyser:</label>
+        <input type="text" id="director" name="director" required><br><br>
+        <label for="year">Rok:</label>
+        <input type="number" id="year" name="year" required><br><br>
+        <label for="genre">Gatunek:</label>
+        <input type="text" id="genre" name="genre" required><br><br>
+        <label for="rating">Ocena:</label>
+        <input type="number" step="0.1" id="rating" name="rating" required><br><br>
+        <button type="submit">Zapisz zmiany</button>
+    </form>
+
+    <script src="/js/edit.js"></script>
+</body>
+</html>

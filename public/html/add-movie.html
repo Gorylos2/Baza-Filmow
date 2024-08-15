@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodaj Nowy Film</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Dodaj Nowy Film</h1>
+        <nav>
+            <ul class="nav-right">
+                <li><a href="/html/index.html">Filmy</a></li>
+                <li><button id="logoutBtn">Wyloguj</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="adminControls">
+        <h2>Dodaj nowy film</h2>
+        <form id="movieForm">
+            <label for="title">Tytuł:</label>
+            <input type="text" id="title" name="title" required><br><br>
+            <label for="description">Opis:</label>
+            <textarea id="description" name="description" required></textarea><br><br>
+            <label for="director">Reżyser:</label>
+            <input type="text" id="director" name="director" required><br><br>
+            <label for="year">Rok:</label>
+            <input type="number" id="year" name="year" required><br><br>
+            <label for="genre">Gatunek:</label>
+            <input type="text" id="genre" name="genre" required><br><br>
+            <label for="rating">Ocena:</label>
+            <input type="number" step="0.1" id="rating" name="rating" required><br><br>
+            <button type="submit">Dodaj film</button>
+        </form>
+
+        <h2>Dodaj film z OMDb API</h2>
+        <form id="apiMovieForm">
+            <label for="apiMovieTitle">Tytuł Filmu:</label>
+            <input type="text" id="apiMovieTitle" name="apiMovieTitle" required>
+            <button type="submit">Dodaj Film z OMDb</button>
+        </form>
+    </section>
+
+    <script src="/js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Nie jesteś zalogowany!');
+                window.location.href = '/html/login.html';
+            }
+
+            const logoutBtn = document.getElementById('logoutBtn');
+            logoutBtn.addEventListener('click', function () {
+                localStorage.removeItem('token');
+                window.location.href = '/html/login.html';
+            });
+
+            // Formularz do manualnego dodawania filmu
+            document.getElementById('movieForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const formData = {
+                    title: document.getElementById('title').value,
+                    description: document.getElementById('description').value,
+                    director: document.getElementById('director').value,
+                    year: document.getElementById('year').value,
+                    genre: document.getElementById('genre').value,
+                    rating: document.getElementById('rating').value,
+                };
+
+                fetch('/movies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Błąd dodawania filmu');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Film dodany pomyślnie!');
+                    window.location.href = '/html/index.html'; // Przekierowanie po dodaniu filmu
+                })
+                .catch(error => {
+                    console.error('Błąd:', error);
+                    alert('Wystąpił problem z dodaniem filmu.');
+                });
+            });
+
+            // Formularz do dodawania filmu z OMDb API
+            document.getElementById('apiMovieForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const movieTitle = document.getElementById('apiMovieTitle').value;
+
+                fetch(`/add-movie/${encodeURIComponent(movieTitle)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Błąd dodawania filmu z OMDb API');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Film z OMDb dodany pomyślnie!');
+                    window.location.href = '/html/index.html'; // Przekierowanie po dodaniu filmu
+                })
+                .catch(error => {
+                    console.error('Błąd:', error);
+                    alert('Wystąpił problem z dodaniem filmu z OMDb API.');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
+

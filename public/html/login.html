@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logowanie</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        p {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            display: block;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        /* Stylizacja dla sekcji rejestracji */
+        .register-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .register-link a {
+            color: #5cb85c;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Stylizacja dla stopki */
+        footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: #777;
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Witaj w bazie filmów</h2>
+    <p>Zaloguj się, aby uzyskać dostęp</p> <!-- Nowy napis powitalny -->
+    <form id="loginForm">
+        <label for="username">Nazwa użytkownika:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Hasło:</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">Zaloguj się</button>
+    </form>
+
+    <!-- Link do rejestracji -->
+    <div class="register-link">
+        <p>Nie masz konta? <a href="/html/register.html">Zarejestruj się</a></p>
+    </div>
+
+    <!-- Stopka z napisem -->
+    <footer>
+        Created by Gorylos
+    </footer>
+
+    <!-- Naniesiony skrypt do obsługi logowania -->
+    <script src="/js/login.js"></script>
+</body>
+</html>
+

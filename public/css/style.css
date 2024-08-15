@@ -1,0 +1,293 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1 {
+    color: #444;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+#adminControls, #filterForm, #searchForm {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"], input[type="number"], textarea {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 10px 15px;
+    background-color: #5cb85c;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: auto;
+}
+
+button:hover {
+    background-color: #4cae4c;
+}
+
+#movies {
+    margin-top: 20px;
+    width: 100%; /* Szerokość dla sekcji filmów */
+    margin: 20px auto; /* Wycentrowanie filmów na stronie */
+}
+
+.movie {
+    background-color: #fff;
+    margin-bottom: 30px;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.movie h2 {
+    margin-top: 0;
+}
+
+#logoutBtn {
+    display: block;
+    margin-bottom: 20px;
+    background-color: #d9534f;
+}
+
+#logoutBtn:hover {
+    background-color: #c9302c;
+}
+
+#searchForm {
+    margin-bottom: 20px;
+    width: 60%; /* Szerokość dla sekcji wyszukiwania */
+    margin: 0 auto; /* Wycentrowanie sekcji wyszukiwania */
+}
+
+#searchForm input[type="text"] {
+    width: calc(100% - 90px);
+    display: inline-block;
+}
+
+#searchForm button {
+    width: 80px;
+    display: inline-block;
+}
+
+header {
+    background-color: #444; /* Ciemniejsze tło dla lepszego kontrastu */
+    color: #f4f4f4; /* Jasny kolor tekstu */
+    padding: 20px; /* Zwiększenie paddingu dla większej wysokości nagłówka */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Rozmieszczamy elementy na boki nagłówka */
+    position: relative; /* Dodaj relative, aby pozycjonować elementy wewnątrz */
+}
+
+header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #f4f4f4; /* Jasny kolor tekstu */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); /* Przesunięcie do centrum */
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    margin-left: auto; /* Sprawia, że nawigacja przesuwa się na prawo */
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center; /* Wyrównaj elementy nawigacyjne pionowo */
+}
+
+nav ul.nav-right li a {
+    padding: 8px 12px; /* zmniejszenie paddingu */
+    font-size: 14px;   /* zmniejszenie rozmiaru czcionki */
+}
+
+
+nav ul li {
+    margin-left: 20px;
+}
+
+nav ul li a, nav ul li button {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 15px;
+    background-color: #5cb85c;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    cursor: pointer;
+}
+
+nav ul li a:hover, nav ul li button:hover {
+    background-color: #4cae4c;
+}
+
+nav ul li button#logoutBtn {
+    background-color: #d9534f; /* Czerwony kolor dla przycisku Wyloguj */
+    margin: 0; /* Usuń margines, aby wyrównać z innymi przyciskami */
+}
+
+nav ul li button#logoutBtn:hover {
+    background-color: #c9302c; /* Ciemniejszy czerwony przy hover */
+}
+
+#movieForm button,
+#filterForm button {
+    width: auto; /* Automatyczna szerokość */
+    display: inline-block; /* Wyświetlanie w linii */
+    margin-top: 10px;
+    padding: 10px 20px; /* Dodatkowy padding dla lepszego wyglądu */
+    background-color: #5cb85c;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#movieForm button[type="submit"],
+#filterForm button[type="submit"] {
+    display: block;
+    margin: 20px auto;
+}
+
+#movieForm button:hover,
+#filterForm button:hover {
+    background-color: #4cae4c;
+}
+
+section {
+    margin-bottom: 30px;
+}
+
+#sortCriteria,
+#sortOrder {
+    width: auto; /* Automatyczna szerokość dopasowana do zawartości */
+    display: inline-block; /* Ustawia elementy w linii */
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    max-width: 200px; /* Dodaj ograniczenie maksymalnej szerokości, jeśli potrzebne */
+}
+
+#filterForm label {
+    display: inline-block;
+    width: 150px; /* Szerokość etykiety */
+    vertical-align: top; /* Wyrównanie pionowe do góry */
+}
+
+#filterForm input[type="text"],
+#filterForm input[type="number"],
+#filterForm select {
+    width: calc(100% - 160px); /* Dopasowanie szerokości do kontenera */
+    display: inline-block;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    box-sizing: border-box;
+}
+
+/* Dodaj szerokość i wycentrowanie dla formularzy */
+#movieForm,
+#filterForm,
+#searchForm,
+#adminControls {
+    width: 60%; /* Możesz dostosować szerokość według potrzeb */
+    margin: 0 auto; /* Wycentruj formularze na stronie */
+}
+
+/* Wycentruj filmy i inne sekcje */
+#moviesSection {
+    width: 100%; /* Szerokość dla sekcji filmów */
+    margin: 20px auto;
+}
+
+/* Stylizacja strony zmiany hasła */
+#changePasswordForm {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#changePasswordForm h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+#changePasswordForm label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+#changePasswordForm input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+#changePasswordForm button {
+    width: 100%;
+    padding: 10px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#changePasswordForm button:hover {
+    background-color: #218838;
+}
+
+
+
+
+
+
+

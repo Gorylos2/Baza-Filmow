@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baza Filmów</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    
+    <header>
+        <h1>Baza Filmów</h1>
+        <p id="welcomeMessage" style="display:none;"></p> <!-- Dodaj ten wiersz -->
+        <nav>
+            <ul class="nav-right">
+                <li><a href="/html/index.html">Filmy</a></li>
+                <li><a href="/html/add-movie.html" id="adminPanelLink">Dodaj Nowy Film</a></li>
+                <li><a href="/html/users.html" id="userPanelLink">Zarządzanie Użytkownikami</a></li>
+                <li><a href="/html/change-password.html">Zmień Hasło</a></li>
+                <li><button id="logoutBtn">Wyloguj</button></li>
+            </ul>
+        </nav>
+    </header>
+    
+    
+    
+    <section id="searchForm">
+        <h2>Wyszukaj film</h2>
+        <input type="text" id="searchTitle" placeholder="Wpisz tytuł">
+        <button id="searchBtn">Szukaj</button>
+    </section>
+    
+    <!-- Przycisk wylogowania, dostępny dla zalogowanych użytkowników -->
+    <button id="logoutBtn" style="display: none;">Wyloguj</button>
+
+    <!-- Przycisk logowania, widoczny tylko gdy użytkownik nie jest zalogowany -->
+    <button id="loginBtn" style="display: none;">Zaloguj się</button>
+    
+    <!-- Formularz filtrowania i sortowania, widoczny dla wszystkich -->
+    <form id="filterForm">
+        <h2>Filtruj i sortuj filmy</h2>
+        <label for="genreFilter">Gatunek:</label>
+        <input type="text" id="genreFilter" name="genreFilter"><br><br>
+
+        <label for="yearFilter">Rok produkcji:</label>
+        <input type="number" id="yearFilter" name="yearFilter"><br><br>
+
+        <label for="ratingFilter">Minimalna ocena:</label>
+        <input type="number" step="0.1" id="ratingFilter" name="ratingFilter"><br><br>
+
+        <label for="sortCriteria">Sortuj według:</label>
+        <select id="sortCriteria" name="sortCriteria">
+            <option value="title">Tytuł</option>
+            <option value="year">Rok produkcji</option>
+            <option value="rating">Ocena</option>
+        </select>
+
+        <label for="sortOrder">Kolejność:</label>
+        <select id="sortOrder" name="sortOrder">
+            <option value="asc">Rosnąco</option>
+            <option value="desc">Malejąco</option>
+        </select>
+
+        <button type="submit">Zastosuj filtr</button>
+    </form>
+
+    <!-- Sekcja wyświetlania filmów -->
+    <section id="moviesSection">
+        <h2>Filmy</h2>
+        <div id="movies">
+            <!-- Filmy będą tutaj wstawiane przez JavaScript -->
+        </div>
+    </section>
+
+    <!-- Dodajemy div do paginacji tutaj -->
+    <div id="pagination"></div>
+
+    <script src="/js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+    
+            if (token) {
+                const decoded = jwt_decode(token);
+                const role = decoded.role;
+    
+                console.log("Rola użytkownika:", role);
+    
+                if (role === 'admin') {
+                    document.getElementById('adminControls').style.display = 'block';
+                } else {
+                    document.getElementById('adminControls').style.display = 'none';
+                }
+    
+                logoutBtn.style.display = 'block';
+                loginBtn.style.display = 'none';
+            } else {
+                loginBtn.style.display = 'block';
+                logoutBtn.style.display = 'none';
+                document.getElementById('adminControls').style.display = 'none';
+            }
+        });
+    
+        document.getElementById('logoutBtn').addEventListener('click', function () {
+            localStorage.removeItem('token');
+            window.location.reload(); // Przeładuj stronę po wylogowaniu
+        });
+    
+        document.getElementById('loginBtn').addEventListener('click', function () {
+            window.location.href = '/html/login.html'; // Przekierowanie na stronę logowania
+        });
+
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            const searchTitle = document.getElementById('searchTitle').value;
+            console.log("Wyszukiwany tytuł:", searchTitle); // Logowanie tytułu
+            fetch(`/movies?title=${searchTitle}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Otrzymane filmy:", data); // Logowanie wyników
+                    const moviesDiv = document.getElementById('movies');
+                    moviesDiv.innerHTML = ''; // Wyczyszczenie listy przed załadowaniem filmów
+                    data.movies.forEach(movie => {
+                        const movieElement = document.createElement('div');
+                        movieElement.innerHTML = `
+                            <h2>${movie.title}</h2>
+                            <p><strong>Opis:</strong> ${movie.description}</p>
+                            <p><strong>Reżyser:</strong> ${movie.director}</p>
+                            <p><strong>Rok:</strong> ${movie.year}</p>
+                            <p><strong>Gatunek:</strong> ${movie.genre}</p>
+                            <p><strong>Ocena:</strong> ${movie.rating}</p>
+                        `;
+                        moviesDiv.appendChild(movieElement);
+                    });
+                })
+                .catch(error => console.error('Błąd wyszukiwania:', error));
+        });
+
+    </script>    
+</body>
+</html>

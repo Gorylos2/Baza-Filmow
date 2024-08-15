@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Witaj na dashboardzie!</h1>
+    <p id="adminSection" style="display:none;">Sekcja dla administratorów</p>
+    <p id="userSection" style="display:none;">Sekcja dla zwykłych użytkowników</p>
+
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                const decoded = jwt_decode(token);
+                const role = decoded.role;
+
+                if (role === 'admin') {
+                    document.getElementById('adminSection').style.display = 'block';
+                } else {
+                    document.getElementById('userSection').style.display = 'block';
+                }
+            } else {
+                alert('Nie jesteś zalogowany!');
+                window.location.href = '/html/login.html'; // Przekierowanie na stronę logowania
+            }
+        });
+    </script>
+</body>
+</html>

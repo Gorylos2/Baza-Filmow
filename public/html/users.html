@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zarządzanie użytkownikami</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Zarządzanie użytkownikami</h1>
+        <nav>
+            <ul>
+                <li><a href="/html/index.html">Filmy</a></li>
+                <li><a href="/html/users.html" id="userPanelLink">Zarządzanie Użytkownikami</a></li>
+                <li><button id="logoutBtn">Wyloguj</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Dodajemy przycisk powrotu do głównego panelu -->
+    <a href="/html/index.html">
+        <button>Powrót do panelu głównego</button>
+    </a>
+
+    <table id="usersTable">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Rola</th>
+                <th>Status</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dane użytkowników będą tutaj -->
+        </tbody>
+    </table>
+    <script src="/js/users.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
+</body>
+</html>
