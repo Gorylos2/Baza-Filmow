@@ -1,38 +1,51 @@
-document.getElementById("loginForm").addEventListener("submit", function(event) {
-    event.preventDefault();
+document.getElementById("loginForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-    const username = document.getElementById("username").value;  // Używanie username zamiast email
-    const password = document.getElementById("password").value;
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const btn = event.target.querySelector("button[type=submit]");
 
-    console.log("Próba logowania z danymi:", { username, password });
+  if (!username || !password) {
+    alert("Podaj nazwę użytkownika i hasło.");
+    return;
+  }
 
-    fetch('/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })  // Wysłanie username i password
-    })
-    .then(response => {
-        console.log("Odpowiedź serwera:", response);
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error('Logowanie nieudane');
-    })
-    .then(data => {
-        if (data.token) {
-            console.log("Token otrzymany:", data.token);
-            localStorage.setItem('token', data.token);
-            alert('Zalogowano pomyślnie!');
-            window.location.href = '/html/index.html';  // Przekierowanie na stronę główną po zalogowaniu
-        } else {
-            console.error('Błąd logowania:', data.message);
-            alert('Błąd logowania: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error.message);
-        alert('Błąd logowania: ' + error.message);
+  // zablokuj przycisk na czas żądania
+  const prevText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Logowanie…";
+
+  try {
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
     });
+
+    let data = {};
+    try { data = await res.json(); } catch (_) {}
+
+    if (!res.ok) {
+      const msg =
+        data?.message ||
+        (res.status === 429 ? "Za dużo prób logowania. Spróbuj ponownie za chwilę." : "Błędny login lub hasło.");
+      alert(msg);
+      return;
+    }
+
+    if (!data.token) {
+      alert("Serwer nie zwrócił tokenu.");
+      return;
+    }
+
+    localStorage.setItem("token", data.token);
+    // sukces → przekierowanie na stronę główną
+    window.location.href = "/html/index.html";
+  } catch (err) {
+    alert("Błąd sieci: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = prevText;
+  }
 });
+

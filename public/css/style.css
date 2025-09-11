@@ -71,15 +71,6 @@ button:hover {
     margin-top: 0;
 }
 
-#logoutBtn {
-    display: block;
-    margin-bottom: 20px;
-    background-color: #d9534f;
-}
-
-#logoutBtn:hover {
-    background-color: #c9302c;
-}
 
 #searchForm {
     margin-bottom: 20px;
@@ -284,10 +275,5 @@ section {
 #changePasswordForm button:hover {
     background-color: #218838;
 }
-
-
-
-
-
 
 
