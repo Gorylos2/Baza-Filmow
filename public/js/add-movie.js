@@ -7,8 +7,11 @@ document.getElementById('apiMovieForm').addEventListener('submit', function(even
     fetch(`/add-movie/${encodeURIComponent(movieTitle)}`, {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${token}`
-        }
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'Authorization': `Bearer ${localStorage.getItem('token')}`
+}
+
     })
     .then(response => {
         if (response.ok) {

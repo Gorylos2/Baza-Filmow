@@ -5,34 +5,43 @@ const UserSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    minlength: 3,
+    maxlength: 30
   },
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    match: [/^\S+@\S+\.\S+$/, 'Podaj poprawny adres e-mail']
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    minlength: 8
   },
   role: {
     type: String,
-    enum: ['user', 'admin'], // Dodane pole roli z wartościami 'user' i 'admin'
-    default: 'user' // Domyślna rola to 'user'
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
+  isBlocked: {
+    type: Boolean,
+    default: false
   }
 });
 
-// Funkcja haszująca hasło przed zapisaniem użytkownika
+// Hashowanie hasła przed zapisem
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
+  this.password = await bcrypt.hash(this.password, 12); // cost=12
   next();
 });
 
-// Funkcja porównująca hasła
+// Porównywanie hasła
 UserSchema.methods.comparePassword = function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
 module.exports = mongoose.model('User', UserSchema);
+

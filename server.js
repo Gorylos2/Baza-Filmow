@@ -7,8 +7,84 @@ const axios = require('axios');
 const User = require('./models/User');
 const jwt = require('jsonwebtoken');
 
+// [NOWE – security/performance]
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const compression = require('compression');
+
+// [NOWE – wczytanie zmiennych środowiskowych]
+require('dotenv').config();
+if (!process.env.MONGO_URL || !process.env.JWT_SECRET || !process.env.OMDB_KEY) {
+  console.warn('UWAGA: Brakuje jednej z wymaganych zmiennych środowiskowych (MONGO_URL/JWT_SECRET/OMDB_KEY).');
+}
+
+// [NOWE – walidacja]
+const { body, param, query, validationResult } = require('express-validator');
+
+const validate = (rules) => [
+  ...rules,
+  (req, res, next) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      const arr = result.array();
+      const first = arr[0]; // pierwszy błąd
+      return res.status(400).json({
+        message: first.msg,    // <-- JEDNOZNACZNY komunikat dla frontu
+        field: first.param,    // (opcjonalnie) nazwa pola
+        errors: arr            // pełna lista dla debugowania
+      });
+    }
+    next();
+  }
+];
+
+
+
 // Inicjalizacja aplikacji Express
 const app = express();
+
+
+// [NOWE – security/performance;]
+app.set('trust proxy', 1); // jeśli za proxy (Heroku/Render/Railway/Nginx)
+
+// Nagłówki bezpieczeństwa
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      "default-src": ["'self'"],
+      "script-src": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      "font-src": ["'self'", "https://fonts.gstatic.com"],
+      "img-src": ["'self'", "data:", "https:"],
+    }
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+
+
+
+// Kompresja odpowiedzi
+app.use(compression());
+
+// Globalny rate limit (wszystkie endpointy)
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+}));
+
+// Surowszy limit dla logowania/rejestracji/zmiany hasła
+app.use(['/login','/register','/change-password'], rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 200, // tymczasowo
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts, please try again later.' }
+}));
+
 
 // Obsługa plików statycznych
 app.use(express.static(path.join(__dirname, 'public')));
@@ -21,30 +97,52 @@ app.use(cors());
 const Movie = require('./models/Movie');
 
 // Połączenie z MongoDB
-mongoose.connect('mongodb://localhost/moviesdb', {
+mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
 
 // Rejestracja nowego użytkownika
-app.post('/register', async (req, res) => {
+app.post('/register', validate([
+  body('username')
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Login musi mieć od 3 do 30 znaków')
+    .trim()
+    .escape(),
+
+  body('email')
+    .isEmail()
+    .withMessage('Podaj poprawny adres e-mail')
+    .normalizeEmail(),
+
+  body('password')
+    .isStrongPassword({ minLength: 8, minSymbols: 0 })
+    .withMessage('Hasło musi mieć min. 8 znaków, zawierać małą i wielką literę oraz cyfrę')
+]), async (req, res) => {
   const { username, email, password } = req.body;
   console.log("Otrzymane dane:", req.body);
+
 
   try {
     const user = new User({ username, email, password });
     await user.save();
     console.log("Zapisany użytkownik:", user);
     res.status(201).json({ message: 'Użytkownik zarejestrowany pomyślnie' });
-  } catch (error) {
-    console.error("Błąd podczas rejestracji:", error.message);
-    res.status(400).json({ message: error.message });
+} catch (error) {
+  if (error.code === 11000) {
+    const field = Object.keys(error.keyPattern)[0];
+    return res.status(400).json({ message: `Użytkownik z takim ${field} już istnieje` });
   }
+  res.status(400).json({ message: error.message });
+}
 });
 
 
 // Logowanie użytkownika
-app.post('/login', async (req, res) => {
+app.post('/login', validate([
+  body('username').isLength({ min: 3 }).trim().escape(),
+  body('password').isString().isLength({ min: 1 })
+]), async (req, res) => {
   const { username, password } = req.body;  // Zmieniono email na username
   console.log('Otrzymane dane logowania:', { username, password });
 
@@ -65,7 +163,12 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Nieprawidłowy username lub hasło' });
     }
 
-    const token = jwt.sign({ id: user._id, username: user.username, role: user.role }, 'secretKey', { expiresIn: '1h' });
+    const token = jwt.sign(
+  { id: user._id, username: user.username, role: user.role },
+  process.env.JWT_SECRET,
+  { expiresIn: '1h' }
+);
+
     console.log('Wygenerowany token:', token);
     res.json({ token });
   } catch (error) {
@@ -85,7 +188,7 @@ function authenticateToken(req, res, next) {
 
   
 
-  jwt.verify(token.split(' ')[1], 'secretKey', (err, user) => {
+  jwt.verify(token.split(' ')[1], process.env.JWT_SECRET, (err, user) => {
       if (err) {
           return res.status(403).json({ message: 'Token jest nieprawidłowy lub wygasł' });
       }
@@ -106,7 +209,10 @@ function authorizeRoles(...roles) {
 }
 
 // Endpoint do zmiany hasła
-app.post('/change-password', authenticateToken, async (req, res) => {
+app.post('/change-password', authenticateToken, validate([
+  body('oldPassword').isString().isLength({ min: 1 }),
+  body('newPassword').isStrongPassword({ minLength: 8, minSymbols: 0 })
+]), async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
   try {
@@ -129,7 +235,19 @@ app.post('/change-password', authenticateToken, async (req, res) => {
 });
 
 // Dodawanie nowego filmu (chronione)
-app.post('/movies', authenticateToken, authorizeRoles('admin'), async (req, res) => {
+app.post('/movies',
+  authenticateToken,
+  authorizeRoles('admin'),
+  validate([
+    body('title').isLength({ min: 1 }).trim().escape(),
+    body('description').optional().isLength({ max: 2000 }).trim(),
+    body('director').optional().isLength({ max: 100 }).trim().escape(),
+    body('year').optional().isInt({ min: 1888, max: 2100 }).toInt(),
+    body('genre').optional().isLength({ max: 100 }).trim().escape(),
+    body('rating').optional().isFloat({ min: 0, max: 10 }).toFloat(),
+  ]),
+  async (req, res) => {
+
   console.log('Otrzymane dane dla nowego filmu:', req.body); // Logowanie danych
   const movie = new Movie({
     title: req.body.title,
@@ -280,6 +398,7 @@ app.get('/', (req, res) => {
 // Pobieranie wszystkich filmów z opcjami filtrowania, sortowania i paginacji
 app.get('/movies', async (req, res) => {
   try {
+    
       const { title, director, genre, year, rating, sort, order, page = 1, limit = 10 } = req.query;
       let filter = {};
       let sortOrder = {};
@@ -352,54 +471,54 @@ app.get('/movies/:id', async (req, res) => {
   }
 });
 
-// Dodanie filmu z OMDb API do bazy danych
-app.get('/add-movie/:title', async (req, res) => {
-  const movieTitle = req.params.title;
-  const apiKey = 'ffb56e8e'; // Podmień na swój klucz API
+/// Dodanie filmu z OMDb API do bazy danych
+app.get(
+  '/add-movie/:title',
+  // Jeśli chcesz tymczasowo bez autoryzacji, zostaw te linie zakomentowane:
+  // authenticateToken,
+  // authorizeRoles('admin'),
+  async (req, res) => {
+    try {
+      const apiKey = process.env.OMDB_KEY || 'ffb56e8e';
+      const movieTitle = req.params.title;
 
-  try {
-    const response = await axios.get(`http://www.omdbapi.com/?t=${encodeURIComponent(movieTitle)}&apikey=${apiKey}`);
-    const movieData = response.data;
+      const { data: movieData } = await axios.get('http://www.omdbapi.com/', {
+        params: { t: movieTitle, apikey: apiKey, plot: 'full' },
+        timeout: 10000,
+      });
 
-    if (movieData.Response === 'True') {
+      if (movieData?.Response !== 'True') {
+        return res.status(404).json({ message: 'Film nie znaleziony w OMDb.' });
+      }
+
+      const yearNum = Number.parseInt(movieData.Year, 10);
+      const ratingNum = Number.parseFloat(movieData.imdbRating);
+
       const movie = new Movie({
         title: movieData.Title,
-        description: movieData.Plot,
-        director: movieData.Director,
-        year: movieData.Year,
-        genre: movieData.Genre,
-        rating: parseFloat(movieData.imdbRating)
+        description: movieData.Plot && movieData.Plot !== 'N/A' ? movieData.Plot : undefined,
+        director: movieData.Director && movieData.Director !== 'N/A' ? movieData.Director : undefined,
+        year: Number.isFinite(yearNum) ? yearNum : undefined,
+        genre: movieData.Genre && movieData.Genre !== 'N/A' ? movieData.Genre : undefined,
+        rating: Number.isFinite(ratingNum) ? ratingNum : undefined,
+        posterUrl: movieData.Poster && movieData.Poster !== 'N/A' ? movieData.Poster : undefined,
       });
 
       await movie.save();
-      res.status(201).json(movie);
-    } else {
-      res.status(404).json({ message: 'Film nie znaleziony w OMDb.' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Błąd podczas komunikacji z OMDb API.', error: error.message });
-  }
-});
-
-// Blokowanie/odblokowywanie użytkownika (dostępne tylko dla adminów)
-app.put('/users/:id/block', authenticateToken, authorizeRoles('admin'), async (req, res) => {
-  try {
-      const user = await User.findById(req.params.id);
-      if (!user) {
-          return res.status(404).json({ message: 'Użytkownik nie znaleziony' });
+      return res.status(201).json(movie);
+    } catch (error) {
+      if (error?.code === 11000) {
+        return res.status(409).json({ message: 'Taki film już istnieje.' });
       }
-
-      user.isBlocked = req.body.isBlocked;
-      await user.save();
-      res.json({ message: 'Status użytkownika zmieniony' });
-  } catch (error) {
-      res.status(500).json({ message: error.message });
+      console.error('Błąd OMDb:', error?.message || error);
+      return res.status(500).json({ message: 'Błąd podczas komunikacji z OMDb API.', error: error.message });
+    }
   }
-});
-
-
+);
 
 // Uruchomienie serwera na porcie 3000
-app.listen(3000, () => {
-  console.log('Serwer działa na http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Serwer działa na http://localhost:${PORT}`);
 });
+
